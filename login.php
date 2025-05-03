@@ -1,51 +1,166 @@
-<?php session_start() ?>
-<div class="container-fluid">
-	<form action="" id="login-frm">
-		<div class="form-group">
-			<label for="" class="control-label">Email</label>
-			<input type="email" name="email" required="" class="form-control">
-		</div>
-		<div class="form-group">
-			<label for="" class="control-label">Password</label>
-			<input type="password" name="password" required="" class="form-control">
-			<small><a href="javascript:void(0)" class="text-dark" id="new_account">Create New Account</a></small>
-		</div>
-		<button class="button btn btn-dark btn-sm">Login</button>
-	</form>
-</div>
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Admin | Online Food Ordering System</title>
+ 	
+
+<?php include('./header.php'); ?>
+<?php include('./db_connect.php'); ?>
+<?php 
+session_start();
+if(isset($_SESSION['login_id']))
+header("location:index.php?page=home");
+
+$query = $conn->query("SELECT * FROM system_settings limit 1")->fetch_array();
+		foreach ($query as $key => $value) {
+			if(!is_numeric($key))
+				$_SESSION['setting_'.$key] = $value;
+		}
+?>
+
+</head>
 <style>
-	#uni_modal .modal-footer{
-		display:none;
+	body{
+		width: 100%;
+	    height: calc(100%);
+	    /*background: #007bff;*/
+	}
+	main#main{
+		width:100%;
+		height: calc(100%);
+		background:white;
+	}
+	#login-right{
+		position: absolute;
+		right:0;
+		width:40%;
+		height: calc(100%);
+		background:white;
+		display: flex;
+		align-items: center;
+		background:#000;
+	}
+	#login-left{
+		position: absolute;
+		left:0;
+		width:60%;
+		height: calc(100%);
+		background:#00000061;
+		display: flex;
+		align-items: center;
+	}
+	#login-right .card{
+		margin: auto
+	}
+	.logo {
+	    margin: auto;
+	    font-size: 8rem;
+	    background: white;
+	    border-radius: 50% 50%;
+	    height: 29vh;
+	    width: 13vw;
+	    display: flex;
+	    align-items: center;
+	}
+	.logo img{
+		height: 80%;
+		width: 80%;
+		margin: auto
+	}
+	#login-left {
+		background: url(./../assets/img/<?php echo $_SESSION['setting_cover_img'] ?>);
+		background-repeat: no-repeat;
+		background-size: cover;
+		background-position: center center;
+	}
+	#login-left:before{
+		content:"";
+		position:absolute;
+		top:0;
+		left:0;
+		height:100%;
+		width:100%;
+		backdrop-filter:brightness(.8);
+		z-index:1;
+	}
+	#login-left .d-flex{
+		position: relative;
+		z-index: 2;
+	}
+	#login-left h1{
+		font-family: 'Dancing Script', cursive !important;
+		font-weight:bolder;
+		font-size:4.5em;
+		color:#fff;
+		text-shadow: 0px 0px 5px #000;
 	}
 </style>
 
+<body>
+
+
+  <main id="main" class=" bg-dark">
+  		<div id="login-left" class="">
+			<div class="h-100 w-100 d-flex justify-content-center align-items-center">
+					<h1 class="text-center"><?= $_SESSION['setting_name'] ?> - Admin Site</h1>
+			</div>
+  		</div>
+  		<div id="login-right">
+  			<div class="card col-md-8">
+  				<div class="card-body">
+  					<form id="login-form" >
+  						<div class="form-group">
+  							<label for="username" class="control-label">Username</label>
+  							<input type="text" id="username" name="username" autofocus class="form-control">
+  						</div>
+  						<div class="form-group">
+  							<label for="password" class="control-label">Password</label>
+  							<input type="password" id="password" name="password" class="form-control">
+  						</div>
+						<div class="form-group">
+							<a href="./../" class="text-dark">Back to Website</a>
+  						</div>
+  						<center><button class="btn-sm btn-block btn-wave col-md-4 btn-dark">Login</button></center>
+  					</form>
+  				</div>
+  			</div>
+  		</div>
+   
+
+  </main>
+
+  <a href="#" class="back-to-top"><i class="icofont-simple-up"></i></a>
+
+
+</body>
 <script>
-	$('#new_account').click(function(){
-		uni_modal("Create an Account",'signup.php?redirect=index.php?page=checkout')
-	})
-	$('#login-frm').submit(function(e){
+	$('#login-form').submit(function(e){
 		e.preventDefault()
-		$('#login-frm button[type="submit"]').attr('disabled',true).html('Logging in...');
+		$('#login-form button[type="button"]').attr('disabled',true).html('Logging in...');
 		if($(this).find('.alert-danger').length > 0 )
 			$(this).find('.alert-danger').remove();
 		$.ajax({
-			url:'admin/ajax.php?action=login2',
+			url:'ajax.php?action=login',
 			method:'POST',
 			data:$(this).serialize(),
 			error:err=>{
 				console.log(err)
-		$('#login-frm button[type="submit"]').removeAttr('disabled').html('Login');
+		$('#login-form button[type="button"]').removeAttr('disabled').html('Login');
 
 			},
 			success:function(resp){
 				if(resp == 1){
-					location.href ='<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
+					location.href ='index.php?page=home';
 				}else{
-					$('#login-frm').prepend('<div class="alert alert-danger">Email or password is incorrect.</div>')
-					$('#login-frm button[type="submit"]').removeAttr('disabled').html('Login');
+					$('#login-form').prepend('<div class="alert alert-danger">Username or password is incorrect.</div>')
+					$('#login-form button[type="button"]').removeAttr('disabled').html('Login');
 				}
 			}
 		})
 	})
-</script>
+</script>	
+</html>

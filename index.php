@@ -1,68 +1,45 @@
 <?php ob_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
-    <?php
-    session_start();
-    include('header.php');
-    include('admin/db_connect.php');
 
-	$query = $conn->query("SELECT * FROM system_settings limit 1")->fetch_array();
-	foreach ($query as $key => $value) {
-		if(!is_numeric($key))
-			$_SESSION['setting_'.$key] = $value;
-	}
-    ?>
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <style>
-    	header.masthead {
-		  background: url(assets/img/<?php echo $_SESSION['setting_cover_img'] ?>);
-		  background-repeat: no-repeat;
-		  background-size: cover;
-		  background-position: center center;
-      position: relative;
-      height: 85vh !important;
-		}
-    header.masthead:before {
-      content: "";
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      backdrop-filter: brightness(0.8);
+  <title>Online Food Ordering System</title>
+ 	
+
+<?php
+	session_start();
+  if(!isset($_SESSION['login_id']))
+    header('location:login.php');
+ include('./header.php'); 
+ // include('./auth.php'); 
+ ?>
+
+</head>
+<style>
+	body{
+        background: #80808045;
   }
-    </style>
-    <body id="page-top">
-        <!-- Navigation-->
-        <div class="toast" id="alert_toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-body text-white">
-        </div>
-      </div>
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top py-3" id="mainNav">
-            <div class="container">
-                <a class="navbar-brand js-scroll-trigger" href="./"><?php echo $_SESSION['setting_name'] ?></a>
-                <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav ml-auto my-2 my-lg-0">
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="index.php?page=home">Home</a></li>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="index.php?page=cart_list"><span> <span class="badge badge-danger item_count">0</span> <i class="fa fa-shopping-cart"></i>  </span>Cart</a></li>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="index.php?page=about">About</a></li>
-                        <?php if(isset($_SESSION['login_user_id'])): ?>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="admin/ajax.php?action=logout2"><?php echo "Welcome ". $_SESSION['login_first_name'].' '.$_SESSION['login_last_name'] ?> <i class="fa fa-power-off"></i></a></li>
-                      <?php else: ?>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="javascript:void(0)" id="login_now">Login</a></li>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="./admin">Admin Login</a></li>
-                      <?php endif; ?>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-       
-        <?php 
-        $page = isset($_GET['page']) ?$_GET['page'] : "home";
-        include $page.'.php';
-        ?>
-       
+</style>
+
+<body>
+	<?php include 'topbar.php' ?>
+	<?php include 'navbar.php' ?>
+  <div class="toast" id="alert_toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-body text-white">
+    </div>
+  </div>
+  <main id="view-panel" >
+      <?php $page = isset($_GET['page']) ? $_GET['page'] :'home'; ?>
+  	<?php include $page.'.php' ?>
+  	
+
+  </main>
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top"><i class="icofont-simple-up"></i></a>
 
 <div class="modal fade" id="confirm_modal" role='dialog'>
     <div class="modal-dialog modal-md" role="document">
@@ -95,29 +72,63 @@
       </div>
     </div>
   </div>
-  <div class="modal fade" id="uni_modal_right" role='dialog'>
-    <div class="modal-dialog modal-full-height  modal-md" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-        <h5 class="modal-title"></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span class="fa fa-arrow-right"></span>
-        </button>
-      </div>
-      <div class="modal-body">
-      </div>
-      </div>
-    </div>
-  </div>
-        <footer class="bg-light py-5">
-            <div class="container"><div class="small text-center text-muted"> Hotel Mangement system | <a href="https://www.sourcecodester.com/" target="_blank">Sourcecodester</a></div></div>
-        </footer>
-        
-       <?php include('footer.php') ?>
-    </body>
+</body>
+<script>
+	 window.start_load = function(){
+    $('body').prepend('<di id="preloader2"></di>')
+  }
+  window.end_load = function(){
+    $('#preloader2').fadeOut('fast', function() {
+        $(this).remove();
+      })
+  }
 
-    <?php $conn->close() ?>
+  window.uni_modal = function($title = '' , $url=''){
+    start_load()
+    $.ajax({
+        url:$url,
+        error:err=>{
+            console.log()
+            alert("An error occured")
+        },
+        success:function(resp){
+            if(resp){
+                $('#uni_modal .modal-title').html($title)
+                $('#uni_modal .modal-body').html(resp)
+                $('#uni_modal').modal('show')
+                end_load()
+            }
+        }
+    })
+}
+window._conf = function($msg='',$func='',$params = []){
+     $('#confirm_modal #confirm').attr('onclick',$func+"("+$params.join(',')+")")
+     $('#confirm_modal .modal-body').html($msg)
+     $('#confirm_modal').modal('show')
+  }
+   window.alert_toast= function($msg = 'TEST',$bg = 'success'){
+      $('#alert_toast').removeClass('bg-success')
+      $('#alert_toast').removeClass('bg-danger')
+      $('#alert_toast').removeClass('bg-info')
+      $('#alert_toast').removeClass('bg-warning')
 
+    if($bg == 'success')
+      $('#alert_toast').addClass('bg-success')
+    if($bg == 'danger')
+      $('#alert_toast').addClass('bg-danger')
+    if($bg == 'info')
+      $('#alert_toast').addClass('bg-info')
+    if($bg == 'warning')
+      $('#alert_toast').addClass('bg-warning')
+    $('#alert_toast .toast-body').html($msg)
+    $('#alert_toast').toast({delay:3000}).toast('show');
+  }
+  $(document).ready(function(){
+    $('#preloader').fadeOut('fast', function() {
+        $(this).remove();
+      })
+  })
+</script>	
 </html>
 <?php 
 $overall_content = ob_get_clean();
